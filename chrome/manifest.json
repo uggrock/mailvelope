@@ -1,6 +1,6 @@
 {
   "name": "Mailvelope",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Secure email with OpenPGP encryption for Webmail",
   "homepage_url":"http://www.mailvelope.com",
   "manifest_version": 2,
@@ -31,6 +31,7 @@
     "common/img/mail_open_96.png",
     "common/img/encrypt-22.png",
     "common/img/sign-22.png",
+    "common/img/sign-and-encrypt-22.png",
     "common/img/undo-22.png",
     "common/img/mail_new.png",
     "common/img/key-icon-blue96.png",

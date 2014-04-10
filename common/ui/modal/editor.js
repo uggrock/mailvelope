@@ -141,7 +141,7 @@
     $('#rte-box').show();
     $('#richText').wysihtml5('deepExtend', {
       toolbar_element: 'rte-toolbar',
-      stylesheets: ['../../dep/css/bootstrap.css', '../../dep/wysihtml5/css/wysiwyg-color.css'],
+      stylesheets: ['../../dep/bootstrap/css/bootstrap.css', '../../dep/wysihtml5/css/wysiwyg-color.css'],
       color: true,
       parserRules: wysihtml5ParserRules,
       events: {

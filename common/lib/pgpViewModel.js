@@ -493,7 +493,7 @@ define(function(require, exports, module) {
     if (keys.length === 0) {
       callback({
         type: 'error',
-        message: 'No valid key found for enryption'
+        message: 'No valid key found for encryption'
       });
     }
     try {
@@ -528,6 +528,30 @@ define(function(require, exports, module) {
     }
   }
 
+  function signAndEncryptMessage(message, keyIdsHex, signKey, callback) {
+    var keys = keyIdsHex.map(function(keyIdHex) {
+      var keyArray = keyring.getKeysForId(keyIdHex);
+      return keyArray ? keyArray[0] : null;
+    }).filter(function(key) {
+      return key !== null;
+    });
+    if (keys.length === 0) {
+      callback({
+        type: 'error',
+        message: 'No valid key found for encryption'
+      });
+    }
+    try {
+      var signedAndEncrypted = openpgp.signAndEncryptMessage(keys, signKey, message);
+      callback(null, signedAndEncrypted);
+    } catch (e) {
+      callback({
+        type: 'error',
+        message: 'Could not sign and encrypt this message'
+      });
+    }
+  }
+
   function getWatchList() {
     return mvelo.storage.get('mailvelopeWatchList');
   }
@@ -553,6 +577,7 @@ define(function(require, exports, module) {
   exports.unlockKey = unlockKey;
   exports.encryptMessage = encryptMessage;
   exports.signMessage = signMessage;
+  exports.signAndEncryptMessage = signAndEncryptMessage;
   exports.getWatchList = getWatchList;
   exports.setWatchList = setWatchList;
   exports.getHostname = getHostname;

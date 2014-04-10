@@ -51,7 +51,7 @@
     port.postMessage({
       event: 'sign-dialog-ok',
       sender: id,
-      signKeyId: $('#keySelect').val()
+      signKeyId: $('#signKeySelect').val()
     });
     return false;
   }
@@ -72,7 +72,7 @@
         load(msg.data);
         break;
       case 'signing-key-userids':
-        var keySelect = $('#keySelect');
+        var keySelect = $('#signKeySelect');
         keySelect.append(
           msg.keys.map(function(key) {
             var option = $('<option/>').val(key.id.toLowerCase()).text(key.name + ' <' + key.email + '>');

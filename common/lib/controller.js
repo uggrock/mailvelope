@@ -246,6 +246,20 @@ define(function (require, exports, module) {
           eFramePorts[editor && editor.parent || id].postMessage({event: 'recipient-proposal'});
         });
         break;
+      case 'sign-and-encrypt-dialog-init':
+        // send content
+        var keys = model.getPrivateKeys();
+        var primary = prefs.data.general.primary_key;
+        mvelo.data.load('common/ui/inline/dialogs/templates/sign-and-encrypt.html', function(content) {
+          console.log('sign-and-encrypt-dialog-init', content);
+          var port = eDialogPorts[id];
+          port.postMessage({event: 'sign-and-encrypt-dialog-content', data: content}); 
+          port.postMessage({event: 'signing-key-userids', keys: keys, primary: primary});
+          // get potential recipients from eFrame
+          // if editor is active get recipients from parent eFrame
+          eFramePorts[editor && editor.parent || id].postMessage({event: 'recipient-proposal'});
+        });
+        break;
       case 'eframe-recipient-proposal':
         var emails = sortAndDeDup(msg.data);
         var keys = model.getKeyUserIDs(emails);
@@ -290,10 +304,47 @@ define(function (require, exports, module) {
           }
         }
         break;
+      case 'sign-and-encrypt-dialog-ok':
+        // add recipients to buffer
+        keyidBuffer[id] = msg.recipient;
+        var signBuffer = messageBuffer[id] = {};
+        signBuffer.callback = function(message, id) {
+          eFramePorts[id].postMessage({event: 'email-text', type: msg.type, action: 'sign-and-encrypt'});
+          eFramePorts[id].postMessage({event: 'hide-pwd-dialog'});
+        };
+        var cache = pwdCache.get(msg.signKeyId, msg.signKeyId);
+        if (cache && cache.key) {
+          signBuffer.key = cache.key;
+          eFramePorts[id].postMessage({event: 'email-text', type: msg.type, action: 'sign-and-encrypt'});
+        } else {
+          var key = model.getKeyForSigning(msg.signKeyId);
+          // add key in buffer
+          signBuffer.key = key.signKey;
+          signBuffer.keyid = msg.signKeyId;
+          signBuffer.userid = key.userId;
+          if (cache) {
+            checkCacheResult(cache, signBuffer);
+            eFramePorts[id].postMessage({event: 'email-text', type: msg.type, action: 'sign-and-encrypt'});
+          } else {
+            // open password dialog
+            if (prefs.data.security.editor_mode == mvelo.EDITOR_EXTERNAL) {
+              eFramePorts[id].postMessage({event: 'show-pwd-dialog'});
+            } else if (prefs.data.security.editor_mode == mvelo.EDITOR_WEBMAIL) {
+              mvelo.windows.openPopup('common/ui/modal/pwdDialog.html?id=' + id, {width: 462, height: 377, modal: true}, function(window) {
+                pwdPopup = window;
+              });
+            }
+          }
+        }
+        break;
       case 'eframe-email-text':
         if (msg.action === 'encrypt') {
           model.encryptMessage(msg.data, keyidBuffer[id], function(err, msg) {
             eFramePorts[id].postMessage({event: 'encrypted-message', message: msg});
+          });
+        } else if (msg.action === 'sign-and-encrypt') {
+          model.signAndEncryptMessage(msg.data, keyidBuffer[id], messageBuffer[id].key, function(err, msg) {
+            eFramePorts[id].postMessage({event: 'signed-and-encrypted-message', message: msg});
           });
         } else if (msg.action === 'sign') {
           model.signMessage(msg.data, messageBuffer[id].key, function(err, msg) {

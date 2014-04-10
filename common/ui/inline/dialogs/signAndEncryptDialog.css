@@ -28,6 +28,7 @@ html, body {
 
 #keyDialog .well {
   padding-left: 0;
+  padding-right: 0;
 }
 
 #keyList {
@@ -38,6 +39,13 @@ html, body {
 
 #keyDialog h5 {
   margin: 0;
+}
+
+#keySelect {
+  height: 26px;
+  line-height: 26px;
+  font-size: 12px;
+  margin-bottom: 6px;
 }
 
 #signKeySelect {

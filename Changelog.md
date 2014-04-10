@@ -1,6 +1,12 @@
 Mailvelope Changelog
 ====================
 
+v0.8.1
+------
+__Apr. 10, 2014__
+
+  * Signing and encrypting text messages in one command (Chrome). [Marek Kurdej]
+
 v0.8.0
 ------
 __Apr. 5, 2014__
