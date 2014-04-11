@@ -413,12 +413,58 @@ define(function(require, exports, module) {
     }
   }
   
+  function readCleartextMessage(armoredText) {
+    var result = {};
+    try {
+      result.message = openpgp.cleartext.readArmored(armoredText);
+    } catch (e) {
+      throw {
+        type: 'error',
+        message: 'Could not read this cleartext signed message: ' + e
+      }
+    }
+
+    result.key = null;
+    result.userid = '';
+    result.keyid = null;
+    result.signkeys = [];
+    result.signkeyids = [];
+
+    var signingKeyIds = result.message.getSigningKeyIds();
+    for (var i = 0; i < signingKeyIds.length; i++) {
+      var signkeyid = signingKeyIds[i].toHex();
+      result.signkeyids.push(signkeyid);
+      // look for keys in private and public ring
+      var signkey = keyring.privateKeys.getForId(signkeyid, true);
+      if (!signkey) {
+        signkey = keyring.publicKeys.getForId(signkeyid, true);
+      }
+      if (signkey) {
+        result.signkeys.push(signkey);
+      }
+    }
+    
+    if (signingKeyIds.length > 0) {
+      if (result.signkeys.length < signingKeyIds.length) {
+        var message = 'Some public keys were not found for this message. Required public key IDs: ' + signingKeyIds[0].toUpperCase();
+        for (var i = 1; i < signingKeyIds.length; i++) {
+          message = message + ' and ' + signingKeyIds[i].toHex().toUpperCase();
+        }
+        throw {
+          type: 'error',
+          message: message,
+        }
+      }
+    }
+    
+    return result;
+  }
+  
   function readMessage(armoredText) {
     var result = {};
     try {
       result.message = openpgp.message.readArmored(armoredText);
     } catch (e) {
-      console.log('openpgp.message.readArmored', e);
       throw {
         type: 'error',
         message: 'Could not read this encrypted message: ' + e
@@ -428,6 +474,8 @@ define(function(require, exports, module) {
     result.key = null;
     result.userid = '';
     result.keyid = null;
+    result.signkeys = [];
+    result.signkeyids = [];
 
     var encryptionKeyIds = result.message.getEncryptionKeyIds();
     for (var i = 0; i < encryptionKeyIds.length; i++) {
@@ -437,22 +485,51 @@ define(function(require, exports, module) {
         break;
       }
     }
-
-    if (result.key) {
-      result.userid = getUserId(result.key);
-    } else {
-      // unknown private key
-      result.keyid = encryptionKeyIds[0].toHex();
-      var message = 'No private key found for this message. Required private key IDs: ' + result.keyid.toUpperCase();
-      for (var i = 1; i < encryptionKeyIds.length; i++) {
-        message = message + ' or ' + encryptionKeyIds[i].toHex().toUpperCase();
-      }
-      throw {
-        type: 'error',
-        message: message,
+    
+    if (encryptionKeyIds.length > 0) {
+      if (result.key) {
+        result.userid = getUserId(result.key);
+      } else {
+        // unknown private key
+        result.keyid = encryptionKeyIds[0].toHex();
+        var message = 'No private key found for this message. Required private key IDs: ' + result.keyid.toUpperCase();
+        for (var i = 1; i < encryptionKeyIds.length; i++) {
+          message = message + ' or ' + encryptionKeyIds[i].toHex().toUpperCase();
+        }
+        throw {
+          type: 'error',
+          message: message,
+        }
       }
     }
 
+    var signingKeyIds = result.message.getSigningKeyIds();
+    for (var i = 0; i < signingKeyIds.length; i++) {
+      var signkeyid = signingKeyIds[i].toHex();
+      result.signkeyids.push(signkeyid);
+      // look for keys in private and public ring
+      var signkey = keyring.privateKeys.getForId(signkeyid, true);
+      if (!signkey) {
+        signkey = keyring.publicKeys.getForId(signkeyid, true);
+      }
+      if (signkey) {
+        result.signkeys.push(signkey);
+      }
+    }
+    
+    if (signingKeyIds.length > 0) {
+      if (result.signkeys.length < signingKeyIds.length) {
+        var message = 'Some public keys were not found for this message. Required public key IDs: ' + signingKeyIds[0].toUpperCase();
+        for (var i = 1; i < signingKeyIds.length; i++) {
+          message = message + ' and ' + signingKeyIds[i].toHex().toUpperCase();
+        }
+        throw {
+          type: 'error',
+          message: message,
+        }
+      }
+    }
+    
     return result;
   }
 
@@ -479,6 +556,31 @@ define(function(require, exports, module) {
       callback({
         type: 'error',
         message: 'Could not decrypt this message: ' + e
+      });
+    }
+  }
+
+  function decryptAndVerifyMessage(message, callback) {
+    try {
+      var decryptedMsg = openpgp.decryptAndVerifyMessage(message.key, message.signkeys, message.message);
+      //decryptedMsg = decode_utf8(decryptedMsg);
+      callback(null, decryptedMsg);
+    } catch (e) {
+      callback({
+        type: 'error',
+        message: 'Could not verify and decrypt this message: ' + e
+      });
+    }
+  }
+
+  function verifyMessage(message, callback) {
+    try {
+      var verifiedMsg = openpgp.verifyClearSignedMessage(message.signkeys, message.message);
+      callback(null, verifiedMsg.text);
+    } catch (e) {
+      callback({
+        type: 'error',
+        message: 'Could not verify this message: ' + e
       });
     }
   }
@@ -573,7 +675,10 @@ define(function(require, exports, module) {
   exports.validateEmail = validateEmail;
   exports.generateKey = generateKey;
   exports.readMessage = readMessage;
+  exports.readCleartextMessage = readCleartextMessage;
   exports.decryptMessage = decryptMessage;
+  exports.decryptAndVerifyMessage = decryptAndVerifyMessage;
+  exports.verifyMessage = verifyMessage;
   exports.unlockKey = unlockKey;
   exports.encryptMessage = encryptMessage;
   exports.signMessage = signMessage;

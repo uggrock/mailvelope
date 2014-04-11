@@ -146,9 +146,9 @@ var ExtractFrame = ExtractFrame || (function() {
         msg = msg.replace(/<(.+?)>/g, ''); // remove tags
         //
         msg = msg.replace(/&nbsp;/g, ' '); // replace non-breaking space with whitespace
-        msg = msg.replace(/\n\s+/g, '\n'); // compress sequence of whitespace and new line characters to one new line
+        //msg = msg.replace(/\n\s+/g, '\n'); // compress sequence of whitespace and new line characters to one new line
         msg = msg.match(this._typeRegex)[0];
-        msg = msg.replace(/:.*\n(?!.*:)/, '$&\n');  // insert new line after last armor header
+        //msg = msg.replace(/:.*\n(?!.*:)/, '$&\n');  // insert new line after last armor header
         msg = this._htmlDecode(msg);
         return msg;
       }

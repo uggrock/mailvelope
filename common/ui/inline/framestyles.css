@@ -22,6 +22,11 @@
   background-image: url('../../img/mail_locked_96.png'), none;
 }
 
+:root .m-extract-frame.m-verify {
+  background-image: url('../../img/mail_signed_96.png'), none;
+  background-color: rgba(255,255,255,.2);
+}
+
 :root .m-extract-frame.m-import {
   background-image: url('../../img/key-icon-blue96.png'), none;
 }

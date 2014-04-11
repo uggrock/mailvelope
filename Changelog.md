@@ -1,6 +1,12 @@
 Mailvelope Changelog
 ====================
 
+v0.8.2
+------
+__Apr. 11, 2014__
+
+  * Verifying signed clear text messages (Chrome). [Marek Kurdej]
+
 v0.8.1
 ------
 __Apr. 10, 2014__

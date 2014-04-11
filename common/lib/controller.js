@@ -134,7 +134,7 @@ define(function (require, exports, module) {
         if (dFramePorts[id]) {
           dFramePorts[id].postMessage({event: 'dialog-cancel'});
         } else if (eFramePorts[id]) {
-            eFramePorts[id].postMessage({event: 'dialog-cancel'});
+          eFramePorts[id].postMessage({event: 'dialog-cancel'});
         }
         if (decryptPopup) {
           decryptPopup.close();
@@ -150,6 +150,15 @@ define(function (require, exports, module) {
         eFramePorts[id].postMessage(msg);
         break;
       case 'decrypt-inline-init':
+        if (pwdPort || mvelo.windows.modalActive) {
+          // password dialog or modal dialog already open
+          dFramePorts[id].postMessage({event: 'remove-dialog'});
+        } else {
+          // get armored message from dFrame
+          dFramePorts[id].postMessage({event: 'armored-message'});  
+        }
+        break;
+      case 'verify-inline-init':
         if (pwdPort || mvelo.windows.modalActive) {
           // password dialog or modal dialog already open
           dFramePorts[id].postMessage({event: 'remove-dialog'});
@@ -180,23 +189,45 @@ define(function (require, exports, module) {
       case 'dframe-armored-message':
         try {
           var message = model.readMessage(msg.data);
-          // password or unlocked key in cache?
-          var cache = pwdCache.get(message.key.primaryKey.getKeyId().toHex(), message.keyid);
-          if (!cache) {
-            // add message in buffer
-            messageBuffer[id] = message;
-            messageBuffer[id].callback = decryptMessage;
-            // open password dialog
-            if (prefs.data.security.display_decrypted == mvelo.DISPLAY_INLINE) {
-              mvelo.windows.openPopup('common/ui/modal/pwdDialog.html?id=' + id, {width: 462, height: 377, modal: true}, function(window) {
-                pwdPopup = window;
-              });
-            } else if (prefs.data.security.display_decrypted == mvelo.DISPLAY_POPUP) {
-              dDialogPorts[id].postMessage({event: 'show-pwd-dialog'});
+          if (message.key) {
+            // encrypt or verifyAndEncrypt
+            // password or unlocked key in cache?
+            var cache = pwdCache.get(message.key.primaryKey.getKeyId().toHex(), message.keyid);
+            if (!cache) {
+              // add message in buffer
+              messageBuffer[id] = message;
+              if (message.signkeys.length > 0) {
+                messageBuffer[id].callback = decryptAndVerifyMessage;
+              } else {
+                messageBuffer[id].callback = decryptMessage;
+              }
+              // open password dialog
+              if (prefs.data.security.display_decrypted == mvelo.DISPLAY_INLINE) {
+                mvelo.windows.openPopup('common/ui/modal/pwdDialog.html?id=' + id, {width: 462, height: 377, modal: true}, function(window) {
+                  pwdPopup = window;
+                });
+              } else if (prefs.data.security.display_decrypted == mvelo.DISPLAY_POPUP) {
+                dDialogPorts[id].postMessage({event: 'show-pwd-dialog'});
+              }
+            } else {
+              checkCacheResult(cache, message);
+              if (message.signkeys.length > 0) {
+                decryptAndVerifyMessage(message, id);
+              } else {
+                decryptMessage(message, id);
+              }
             }
+          } else if (message.signkeys.length > 0) {
+            // verify
+            message = model.readCleartextMessage(msg.data);
+            // TODO: do it in a separate event
+            verifyMessage(message, id);
           } else {
-            checkCacheResult(cache, message);
-            decryptMessage(message, id);
+            // Oups: no keys at all
+            throw {
+              type: 'error',
+              message: 'neither encryption nor signing keys available',
+            };
           }
         } catch (e) {
           // display error message in decrypt dialog
@@ -496,6 +527,37 @@ define(function (require, exports, module) {
         // decrypted correctly
         msgText = mvelo.util.parseHTML(msgText, function(sanitized) {
           dDialogPorts[id].postMessage({event: 'decrypted-message', message: sanitized});
+        });
+      }
+    });
+  }
+
+  function decryptAndVerifyMessage(message, id) {
+    model.decryptAndVerifyMessage(message, function(err, msgText) {
+      if (err) {
+        // display error message in decrypt dialog
+        // TODO: if only verification failed, show message anyway
+        dDialogPorts[id].postMessage({event: 'error-message', error: err.message});
+      } else {
+        // decrypted correctly
+        msgText = mvelo.util.parseHTML(msgText, function(sanitized) {
+          dDialogPorts[id].postMessage({event: 'decrypted-message', message: sanitized});
+          // TODO: do not show as error
+          dDialogPorts[id].postMessage({event: 'error-message', error: 'GOOD signature'});
+        });
+      }
+    });
+  }
+
+  function verifyMessage(message, id) {
+    model.verifyMessage(message, function(err, msgText) {
+      if (err) {
+        // display error message in verify dialog
+        dDialogPorts[id].postMessage({event: 'error-message', error: err.message});
+      } else {
+        // verified correctly
+        msgText = mvelo.util.parseHTML(msgText, function(sanitized) {
+          dDialogPorts[id].postMessage({event: 'verified-message', message: sanitized});
         });
       }
     });
