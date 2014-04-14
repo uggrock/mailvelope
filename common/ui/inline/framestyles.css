@@ -102,10 +102,7 @@
 }
 
 :root .m-encrypt-frame .m-icon-encrypt {
-  background-image: url('../../img/encrypt-22.png');
-}
-
-:root .m-encrypt-frame .m-icon-sign-and-encrypt {
+  /* background-image: url('../../img/encrypt-22.png'); */
   background-image: url('../../img/sign-and-encrypt-22.png');
 }
 

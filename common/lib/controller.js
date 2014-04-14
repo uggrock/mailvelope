@@ -269,23 +269,13 @@ define(function (require, exports, module) {
         break;
       case 'encrypt-dialog-init':
         // send content
-        mvelo.data.load('common/ui/inline/dialogs/templates/encrypt.html', function(content) {
-          //console.log('content rendered', content);
-          eDialogPorts[id].postMessage({event: 'encrypt-dialog-content', data: content});
-          // get potential recipients from eFrame
-          // if editor is active get recipients from parent eFrame
-          eFramePorts[editor && editor.parent || id].postMessage({event: 'recipient-proposal'});
-        });
-        break;
-      case 'sign-and-encrypt-dialog-init':
-        // send content
         var keys = model.getPrivateKeys();
         var primary = prefs.data.general.primary_key;
         var should_sign = prefs.data.general.auto_sign_primary;
-        mvelo.data.load('common/ui/inline/dialogs/templates/sign-and-encrypt.html', function(content) {
-          console.log('sign-and-encrypt-dialog-init', content);
+        mvelo.data.load('common/ui/inline/dialogs/templates/encrypt.html', function(content) {
+          //console.log('encrypt-dialog-init', content);
           var port = eDialogPorts[id];
-          port.postMessage({event: 'sign-and-encrypt-dialog-content', data: content, sign: should_sign});
+          port.postMessage({event: 'encrypt-dialog-content', data: content, sign: should_sign});
           port.postMessage({event: 'signing-key-userids', keys: keys, primary: primary});
           // get potential recipients from eFrame
           // if editor is active get recipients from parent eFrame
@@ -298,12 +288,6 @@ define(function (require, exports, module) {
         var primary = prefs.data.general.auto_add_primary && prefs.data.general.primary_key.toLowerCase();
         // if editor is active send to corresponding eDialog
         eDialogPorts[editor && editor.id || id].postMessage({event: 'public-key-userids', keys: keys, primary: primary});
-        break;
-      case 'encrypt-dialog-ok':
-        // add recipients to buffer
-        keyidBuffer[id] = msg.recipient;
-        // get email text from eFrame
-        eFramePorts[id].postMessage({event: 'email-text', type: msg.type, action: 'encrypt'});
         break;
       case 'sign-dialog-ok':
         var signBuffer = messageBuffer[id] = {};
@@ -336,7 +320,7 @@ define(function (require, exports, module) {
           }
         }
         break;
-      case 'sign-and-encrypt-dialog-ok':
+      case 'encrypt-dialog-ok':
         // add recipients to buffer
         keyidBuffer[id] = msg.recipient;
 

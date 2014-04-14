@@ -27,7 +27,7 @@
     id = 'eDialog-' + qs.id;
     port = mvelo.extension.connect({name: id});
     port.onMessage.addListener(messageListener);
-    port.postMessage({event: 'sign-and-encrypt-dialog-init', sender: id});
+    port.postMessage({event: 'encrypt-dialog-init', sender: id});
   }
 
   function load(content) {
@@ -66,7 +66,7 @@
       $('#okBtn').button('loading');
       var signKeyId = $('#signChk').is(':checked') && $('#signKeySelect').val();
       port.postMessage({
-        event: 'sign-and-encrypt-dialog-ok',
+        event: 'encrypt-dialog-ok',
         sender: id,
         signKeyId: signKeyId,
         recipient: recipient,
@@ -132,7 +132,7 @@
 
   function messageListener(msg) {
     switch (msg.event) {
-      case 'sign-and-encrypt-dialog-content':
+      case 'encrypt-dialog-content':
         load(msg.data);
         if (msg.sign) {
           $('#signChk').prop('checked', true);

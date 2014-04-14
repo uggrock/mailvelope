@@ -82,8 +82,7 @@ var EncryptFrame = EncryptFrame || (function() {
       /* jshint multistr: true */
       toolbar = toolbar + '\
                 <button id="signBtn"            title="Sign"                class="m-btn m-encrypt-button" type="button"><i class="m-icon m-icon-sign"></i></button> \
-                <button id="encryptBtn"         title="Encrypt"             class="m-btn m-encrypt-button" type="button"><i class="m-icon m-icon-encrypt"></i></button> \
-                <button id="signAndEncryptBtn"  title="Sign &amp; Encrypt"  class="m-btn m-encrypt-button" type="button"><i class="m-icon m-icon-sign-and-encrypt"></i></button> \
+                <button id="encryptBtn"         title="Sign &amp; Encrypt"  class="m-btn m-encrypt-button" type="button"><i class="m-icon m-icon-encrypt"></i></button> \
                 <button id="undoBtn"            title="Undo"                class="m-btn m-encrypt-button" type="button"><i class="m-icon m-icon-undo"></i></button> \
                 <button id="editorBtn"       title="Open Mailvelope Editor" class="m-btn m-encrypt-button" type="button"><i class="m-icon m-icon-editor"></i></button> \
                 ';
@@ -100,7 +99,6 @@ var EncryptFrame = EncryptFrame || (function() {
       this._eFrame.find('.m-frame-close').on('click', this._closeFrame.bind(this));
       this._eFrame.find('#signBtn').on('click', this._onSignButton.bind(this));
       this._eFrame.find('#encryptBtn').on('click', this._onEncryptButton.bind(this));
-      this._eFrame.find('#signAndEncryptBtn').on('click', this._onSignAndEncryptButton.bind(this));
       this._eFrame.find('#undoBtn').on('click', this._onUndoButton.bind(this));
       this._eFrame.find('#editorBtn').on('click', this._onEditorButton.bind(this));
       if (!expanded) {
@@ -118,7 +116,6 @@ var EncryptFrame = EncryptFrame || (function() {
       switch (this._editorMode) {
         case mvelo.EDITOR_WEBMAIL:
           this._eFrame.find('#encryptBtn').show();
-          this._eFrame.find('#signAndEncryptBtn').show();
           this._eFrame.find('#signBtn').show();
           break;
         case mvelo.EDITOR_EXTERNAL:
@@ -147,11 +144,6 @@ var EncryptFrame = EncryptFrame || (function() {
       return false;
     },
 
-    _onSignAndEncryptButton: function() {
-      this.showSignAndEncryptDialog();
-      return false;
-    },
-
     _onUndoButton: function() {
       this._resetEmailText();
       this._normalizeButtons();
@@ -169,10 +161,6 @@ var EncryptFrame = EncryptFrame || (function() {
 
     showEncryptDialog: function() {
       this._expandFrame(this._showDialog.bind(this));
-    },
-
-    showSignAndEncryptDialog: function() {
-      this._expandFrame(this._showSignAndEncryptDialog.bind(this));
     },
 
     _expandFrame: function(callback) {
@@ -242,23 +230,6 @@ var EncryptFrame = EncryptFrame || (function() {
         scrolling: 'no'
       });
       var path = 'common/ui/inline/dialogs/encryptDialog.html?id=' + that.id;
-      var url = mvelo.extension.getURL(path);
-      this._eDialog.attr('src', url);
-      this._eFrame.append(this._eDialog);
-      this._setFrameDim();
-      this._eDialog.fadeIn();
-    },
-
-    _showSignAndEncryptDialog: function() {
-      //console.log('_showSignAndEncryptDialog');
-      var that = this;
-      this._eDialog = $('<iframe/>', {
-        id: 'eDialog-' + that.id,
-        'class': 'm-frame-dialog',
-        frameBorder: 0,
-        scrolling: 'no'
-      });
-      var path = 'common/ui/inline/dialogs/signAndEncryptDialog.html?id=' + that.id;
       var url = mvelo.extension.getURL(path);
       this._eDialog.attr('src', url);
       this._eFrame.append(this._eDialog);
