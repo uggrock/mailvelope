@@ -37,7 +37,8 @@
       general: {
         editor_type: $('input:radio[name="editorRadios"]:checked').val(),
         primary_key: $('#primaryKey > option:selected').val(),
-        auto_add_primary: $('#autoAddPrimary:checked').length !== 0
+        auto_add_primary: $('#autoAddPrimary:checked').length !== 0,
+        auto_sign_primary: $('#autoSignPrimary:checked').length !== 0
       }
     };
     keyRing.sendMessage({ event: 'set-prefs', data: update }, function() {
@@ -78,14 +79,19 @@
     if ($('#primaryKey > option:selected').val() === '') {
       $('#autoAddPrimary').prop('checked', false)
                           .prop('disabled', true);
+      $('#autoSignPrimary').prop('checked', false)
+                          .prop('disabled', true);
     } else {
       $('#autoAddPrimary').prop('disabled', false);
+      $('#autoSignPrimary').prop('disabled', false);
     }
   }
 
   function clearPrimarySelect() {
     $('#primaryKey > option:first').prop('selected', true);
     $('#autoAddPrimary').prop('checked', false)
+                        .prop('disabled', true);
+    $('#autoSignPrimary').prop('checked', false)
                         .prop('disabled', true);
   }
 
@@ -125,6 +131,9 @@
       }).prop('selected', true);
       if (prefs.general.auto_add_primary) {
         $('#autoAddPrimary').prop('checked', true);
+      }
+      if (prefs.general.auto_sign_primary) {
+        $('#autoSignPrimary').prop('checked', true);
       }
       onPrimaryChange();
       if (callback) callback(prefs);

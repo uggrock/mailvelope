@@ -41,6 +41,7 @@
     $('#addBtn').click(onAdd);
     $('#deleteBtn').click(onDelete);
     $('#keyDialog').fadeIn('fast');
+    $('#signChk').on('change', onSignChange);
     // align width
     $.setEqualWidth($('#okBtn'), $('#cancelBtn'));
     $.setEqualWidth($('#addBtn'), $('#deleteBtn'));
@@ -63,10 +64,11 @@
     } else {
       $('body').addClass('busy');
       $('#okBtn').button('loading');
+      var signKeyId = $('#signChk').is(':checked') && $('#signKeySelect').val();
       port.postMessage({
         event: 'sign-and-encrypt-dialog-ok',
         sender: id,
-        signKeyId: $('#signKeySelect').val(),
+        signKeyId: signKeyId,
         recipient: recipient,
         type: $('input:radio[name="encodeRadios"]:checked').val()
       });
@@ -115,6 +117,14 @@
     $('#keyList option:selected').remove();
   }
 
+  function onSignChange() {
+    if ($('#signChk').is(':checked')) {
+      $('#signKeySelect').prop('disabled', false);
+    } else {
+      $('#signKeySelect').prop('disabled', true);
+    }
+  }
+
   function keyDialogPos() {
     var keyDialog = $('#keyDialog');
     keyDialog.css('margin-top', Math.round(-keyDialog.outerHeight() / 2));
@@ -124,6 +134,12 @@
     switch (msg.event) {
       case 'sign-and-encrypt-dialog-content':
         load(msg.data);
+        if (msg.sign) {
+          $('#signChk').prop('checked', true);
+        } else {
+          $('#signChk').prop('checked', false);
+        }
+        onSignChange();
         break;
       case 'signing-key-userids':
         var keySelect = $('#signKeySelect');

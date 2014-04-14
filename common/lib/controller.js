@@ -155,7 +155,7 @@ define(function (require, exports, module) {
           dFramePorts[id].postMessage({event: 'remove-dialog'});
         } else {
           // get armored message from dFrame
-          dFramePorts[id].postMessage({event: 'armored-message'});  
+          dFramePorts[id].postMessage({event: 'armored-message'});
         }
         break;
       case 'verify-inline-init':
@@ -164,7 +164,7 @@ define(function (require, exports, module) {
           dFramePorts[id].postMessage({event: 'remove-dialog'});
         } else {
           // get armored message from dFrame
-          dFramePorts[id].postMessage({event: 'armored-message'});  
+          dFramePorts[id].postMessage({event: 'armored-message'});
         }
         break;
       case 'decrypt-popup-init':
@@ -179,7 +179,7 @@ define(function (require, exports, module) {
         // decrypt popup potentially needs pwd dialog
         if (pwdPort || mvelo.windows.modalActive) {
           // password dialog or modal dialog already open
-          dFramePorts[id].postMessage({event: 'remove-dialog'});        
+          dFramePorts[id].postMessage({event: 'remove-dialog'});
         } else {
           mvelo.windows.openPopup('common/ui/modal/decryptPopup.html?id=' + id, {width: 742, height: 450, modal: true}, function(window) {
             decryptPopup = window;
@@ -271,7 +271,7 @@ define(function (require, exports, module) {
         // send content
         mvelo.data.load('common/ui/inline/dialogs/templates/encrypt.html', function(content) {
           //console.log('content rendered', content);
-          eDialogPorts[id].postMessage({event: 'encrypt-dialog-content', data: content}); 
+          eDialogPorts[id].postMessage({event: 'encrypt-dialog-content', data: content});
           // get potential recipients from eFrame
           // if editor is active get recipients from parent eFrame
           eFramePorts[editor && editor.parent || id].postMessage({event: 'recipient-proposal'});
@@ -281,10 +281,11 @@ define(function (require, exports, module) {
         // send content
         var keys = model.getPrivateKeys();
         var primary = prefs.data.general.primary_key;
+        var should_sign = prefs.data.general.auto_sign_primary;
         mvelo.data.load('common/ui/inline/dialogs/templates/sign-and-encrypt.html', function(content) {
           console.log('sign-and-encrypt-dialog-init', content);
           var port = eDialogPorts[id];
-          port.postMessage({event: 'sign-and-encrypt-dialog-content', data: content}); 
+          port.postMessage({event: 'sign-and-encrypt-dialog-content', data: content, sign: should_sign});
           port.postMessage({event: 'signing-key-userids', keys: keys, primary: primary});
           // get potential recipients from eFrame
           // if editor is active get recipients from parent eFrame
@@ -338,6 +339,15 @@ define(function (require, exports, module) {
       case 'sign-and-encrypt-dialog-ok':
         // add recipients to buffer
         keyidBuffer[id] = msg.recipient;
+
+        if (!msg.signKeyId) {
+          // encrypt only
+          // get email text from eFrame
+          eFramePorts[id].postMessage({event: 'email-text', type: msg.type, action: 'encrypt'});
+          break;
+        }
+
+        // sign and encrypt
         var signBuffer = messageBuffer[id] = {};
         signBuffer.callback = function(message, id) {
           eFramePorts[id].postMessage({event: 'email-text', type: msg.type, action: 'sign-and-encrypt'});
@@ -404,7 +414,7 @@ define(function (require, exports, module) {
           // editor transfers message to recipient encrypt frame
           eFramePorts[msg.recipient].postMessage({event: 'set-editor-output', text: output});
           editor.window.close();
-          editor = null;  
+          editor = null;
         }
         // sanitize if content from plain text, rich text already sanitized by editor
         if (prefs.data.general.editor_type == mvelo.PLAIN_TEXT) {
@@ -426,7 +436,7 @@ define(function (require, exports, module) {
           editor.parent = id;
           mvelo.windows.openPopup('common/ui/modal/editor.html?parent=' + id + '&editor_type=' + prefs.data.general.editor_type, {width: 742, height: 450, modal: false}, function(window) {
             editor.window = window;
-          }); 
+          });
         }
         break;
       case 'editor-init':
@@ -725,7 +735,7 @@ define(function (require, exports, module) {
       if (labels.length < 2) return;
       if (labels.length <= 3) {
         if (/www.*/.test(labels[0])) {
-          labels[0] = '*';  
+          labels[0] = '*';
         } else {
           labels.unshift('*');
         }
@@ -741,8 +751,8 @@ define(function (require, exports, module) {
     var result = [];
     var prev = -1;
     unordered.sort(compFn).forEach(function(item) {
-      var equal = (compFn !== undefined && prev !== undefined) 
-      ? compFn(prev, item) === 0 : prev === item; 
+      var equal = (compFn !== undefined && prev !== undefined)
+      ? compFn(prev, item) === 0 : prev === item;
       if (!equal) {
         result.push(item);
         prev = item;

@@ -298,7 +298,7 @@
               <h3>Key migration error</h3>
               <form class="form-vertical well" onsubmit="return false">
                 <div class="control-group">
-                  <label class="control-label" for="textarea"><h4>The following keys could not be migrated to Mailvelope v0.8.1</h4></label>
+                  <label class="control-label" for="textarea"><h4>The following keys could not be migrated to Mailvelope v0.8.2</h4></label>
                   <div>Please contact support@mailvelope.com for help. <b>Warning!</b> The box below can also include private keys, don't send them by email.</div>
                   <div class="controls" style="margin-top: 10px">
                     <textarea id="errorKeys" rows="12" style="width: 650px; font-family: monospace;"></textarea>
@@ -417,6 +417,9 @@
                   <div class="controls">
                     <label class="checkbox">
                       <input type="checkbox" id="autoAddPrimary"> Always add primary key to list of recipients. (Allows to decrypt sent mails)
+                    </label>
+                    <label class="checkbox">
+                      <input type="checkbox" id="autoSignPrimary"> Always sign with primary key.
                     </label>
                   </div>
                 </div>
