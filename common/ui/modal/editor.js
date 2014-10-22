@@ -36,6 +36,33 @@
   var blurValid = null;
 
   var maxFileUploadSize = 50000000;
+
+  var extensionColors = [];
+  extensionColors.txt  = "#427bba"; // Text
+  extensionColors.doc  = "#427bba";
+  extensionColors.docx = "#427bba";
+  extensionColors.rtf  = "#427bba";
+  extensionColors.pdf  = "#ad1e24";
+  extensionColors.html = "#ad1e24";
+  extensionColors.htm  = "#ad1e24";
+  extensionColors.mov  = "#bc4fa9"; // Video
+  extensionColors.avi  = "#bc4fa9";
+  extensionColors.wmv  = "#bc4fa9";
+  extensionColors.mpeg = "#bc4fa9";
+  extensionColors.flv  = "#bc4fa9";
+  extensionColors.divx = "#bc4fa9";
+  extensionColors.xvid = "#bc4fa9";
+  extensionColors.mp3  = "#563b8c"; // Music
+  extensionColors.wav  = "#563b8c";
+  extensionColors.zip  = "#e7ab30"; // Sonstige
+  extensionColors.rar  = "#e7ab30";
+  extensionColors.xml  = "#d6732c";
+  extensionColors.ppt  = "#d6732c";
+  extensionColors.pptx = "#d6732c";
+  extensionColors.xls  = "#6ea64e";
+  extensionColors.xlsx = "#6ea64e";
+  extensionColors.exe  = "#4b4a4a";
+  extensionColors.unknown = "#8a8a8a"; // Unbekannt
   var currentUploadFileName;
 
   function init() {
@@ -91,9 +118,20 @@
 
   }
 
+  function getExtensionColor(fileExt) {
+    var color = extensionColors[fileExt];
+    if (color === null) {
+      color = extensionColors["*"];
+    }
+    return color;
+  }
+
   var attachments = [];
 
   function addAttachment(filename, id, content) {
+    var fileNameNoExt = extractFileNameWithoutExt(filename);
+    var fileExt = extractFileExtension(filename);
+    var extColor = getExtensionColor(fileExt);
     // check if id exists
     attachments.push({"filename":filename, "id":""+id, "content":content});
     $uploadPanel = $("#uploadPanel");
@@ -101,16 +139,24 @@
 
     var removeUploadButton = $('<span/>', {
       "data-id": id,
+      "style": "background-color: #b5b45b5",
       "class": 'glyphicon glyphicon-remove'
     }).on("click", function() {
       removeAttachment($(this).attr("data-id"));
       $(this).parent().remove();
     });
 
+    var extensionButton = $('<span/>', {
+      "data-id": id,
+      "style": "text-transform: uppercase; background-color: "+extColor,
+      "class": 'label'
+    }).append(fileExt);
+
     var fileUI = $('<span/>', {
       "class": 'label label-default'
     })
-    .append(filename+" ")
+    .append(extensionButton)
+    .append(" "+fileNameNoExt+" ")
     .append(removeUploadButton);
 
     $uploadPanel.append(fileUI);
@@ -349,6 +395,26 @@
         break;
       default:
         console.log('unknown event');
+    }
+  }
+
+  function extractFileNameWithoutExt(fileName) {
+    var indexOfDot = fileName.lastIndexOf(".");
+    if(indexOfDot > 0 ) { // case: regular
+      return fileName.substring(0, indexOfDot);
+    } else if(indexOfDot === 0) { // case ".txt"
+      return "";
+    } else {
+      return fileName;
+    }
+  }
+
+  function extractFileExtension(fileName) {
+    var lastindexDot = fileName.lastIndexOf(".");
+    if (lastindexDot < 0) { // no extension
+      return "";
+    } else {
+      return fileName.substring(lastindexDot + 1, fileName.length).toLowerCase().trim();
     }
   }
 
