@@ -24,6 +24,10 @@ define(function (require, exports, module) {
   var pwdCache = require('./pwdCache');
   var mailreader = require('mailreader-parser');
 
+/*  const {Cc, Ci, Cu} = require("chrome");
+  const {Blob, window} = Cu.import("resource://gre/modules/Services.jsm", {});
+  const URL = Cu.importGlobalProperties(['URL']);*/
+
   // ports to main content scripts
   var mainCsPorts = {};
   // ports to decrypt frames
@@ -223,7 +227,7 @@ define(function (require, exports, module) {
           // password dialog or modal dialog already open
           dFramePorts[id].postMessage({event: 'remove-dialog'});
         } else {
-          mvelo.windows.openPopup('common/ui/modal/decryptPopup.html?id=' + id, {width: 742, height: 450, modal: true}, function(window) {
+          mvelo.windows.openPopup('common/ui/modal/decryptPopup.html?id=' + id, {width: 742, height: 450, modal: false}, function(window) {
             decryptPopup = window;
           });
         }
@@ -579,21 +583,38 @@ define(function (require, exports, module) {
         if (/^Content-Type:\smultipart\//.test(rawText)) {
           // MIME
           mailreader.parse([{raw: rawText}], function(parsed) {
-            if (parsed && parsed[0] && parsed[0].content) {
-              var html = parsed[0].content.filter(function(entry) {
-                return entry.type === 'html';
+            if(parsed && parsed.length > 0) {
+              parsed[0].content.forEach(function(part, index){
+                //console.log("Mail message----: "+index+"-"+part.type+"\n"+part.content);
+                if(part.type === "text" || part.type === "html") {
+                  var html = parsed[0].content.filter(function(entry) {
+                    return entry.type === 'html';
+                  });
+                  if (html.length) {
+                    mvelo.util.parseHTML(html[0].content, function(sanitized) {
+                      port.postMessage({event: 'decrypted-message', message: sanitized});
+                    });
+                    return;
+                  }
+                  var text = parsed[0].content.filter(function(entry) {
+                    return entry.type === 'text';
+                  });
+                  msgText = mvelo.encodeHTML(text.length ? text[0].content : rawText);
+                  port.postMessage({event: 'decrypted-message', message: msgText});
+                } else if(part.content && part.type === "attachment") { // Handling attachments
+                  console.log("Mail attachment----: "+part.filename+" - "+part.mimeType+"\n"+part.content);
+                  var blob = new Blob([part.content], { type: part.mimeType });
+                  //part.content = URL.createObjectURL(blob);
+                  //port.postMessage({event: 'add-decrypted-attachment', message: part});
+                  var reader = new FileReader();
+                  reader.onload = function(event){
+                    console.log(' of ' + JSON.stringify(reader.result));
+                    part.content = reader.result;
+                    port.postMessage({event: 'add-decrypted-attachment', message: part});
+                  };
+                  reader.readAsDataURL(blob);
+                }
               });
-              if (html.length) {
-                mvelo.util.parseHTML(html[0].content, function(sanitized) {
-                  port.postMessage({event: 'decrypted-message', message: sanitized});
-                });
-                return;
-              }
-              var text = parsed[0].content.filter(function(entry) {
-                return entry.type === 'text';
-              });
-              msgText = mvelo.encodeHTML(text.length ? text[0].content : rawText);
-              port.postMessage({event: 'decrypted-message', message: msgText});
             }
           });
         } else {
