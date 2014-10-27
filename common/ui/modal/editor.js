@@ -118,14 +118,6 @@
 
   }
 
-  function getExtensionColor(fileExt) {
-    var color = extensionColors[fileExt];
-    if (color === null) {
-      color = extensionColors["*"];
-    }
-    return color;
-  }
-
   var attachments = [];
 
   function addAttachment(filename, id, content) {
@@ -139,7 +131,7 @@
 
     var removeUploadButton = $('<span/>', {
       "data-id": id,
-      "style": "background-color: #b5b45b5",
+      "style": "background-color: #b5b45b",
       "class": 'glyphicon glyphicon-remove'
     }).on("click", function() {
       removeAttachment($(this).attr("data-id"));
@@ -153,13 +145,15 @@
     }).append(fileExt);
 
     var fileUI = $('<span/>', {
-      "class": 'label label-default'
+      "class": 'label label-default',
+      "style": 'background-color: #ddd'
     })
     .append(extensionButton)
     .append(" "+fileNameNoExt+" ")
     .append(removeUploadButton);
 
     $uploadPanel.append(fileUI);
+    $uploadPanel.append("&nbsp;");
     currentUploadFileName = undefined;
   }
 
@@ -416,6 +410,14 @@
     } else {
       return fileName.substring(lastindexDot + 1, fileName.length).toLowerCase().trim();
     }
+  }
+
+  function getExtensionColor(fileExt) {
+    var color = extensionColors[fileExt];
+    if (color === undefined) {
+      color = extensionColors.unknown;
+    }
+    return color;
   }
 
   $(document).ready(init);
