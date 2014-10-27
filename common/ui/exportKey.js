@@ -127,6 +127,8 @@
     $('#exportDownload a').attr('download', $('#exportDownload input').val())
                           .attr('href', url)
                           .removeClass('hide');
+    $('#exportDownload a').get(0).click();
+    window.URL.revokeObjectURL(url);
   }
 
   function exportToClipboard() {
