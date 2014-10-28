@@ -84,19 +84,33 @@
   function addSandbox() {
     var sandbox = $('<iframe/>', {
       id: 'decryptmail',
-      sandbox: 'allow-same-origin',
+      //sandbox: 'allow-same-origin',
       frameBorder: 0
     });
     var content = $('<div/>', {
       id: 'content',
       css: {
         position: 'absolute',
-        top: 0,
+        top: '0',
         left: 0,
         right: 0,
         bottom: 0,
         padding: '3px',
+        'margin-top': '40px',
         'background-color': 'rgba(0,0,0,0)',
+        overflow: 'auto'
+      }
+    });
+    var attachments = $('<div/>', {
+      id: 'attachments',
+      css: {
+        position: 'absolute',
+        top: '0',
+        left: 0,
+        right: 0,
+        bottom: '0',
+        padding: '3px',
+        'background-color': 'rgba(0,0,0,0)', // #D7E3FF
         overflow: 'auto'
       }
     });
@@ -109,6 +123,7 @@
       $(this).contents().find('head').append(style)
                                      .append(style2);
       $(this).contents().find('body').css('background-color', 'rgba(0,0,0,0)');
+      $(this).contents().find('body').append(attachments);
       $(this).contents().find('body').append(content);
     });
     $('#wrapper').append(sandbox);
@@ -144,6 +159,78 @@
     watermark.css('font-size', Math.floor(Math.min(watermark.width() / 3, watermark.height())));
   }
 
+  var attachments = [];
+
+  function addAttachment(filename, content, mimeType) {
+    var fileNameNoExt = mvelo.extractFileNameWithoutExt(filename);
+    var fileExt = mvelo.extractFileExtension(filename);
+    var extColor = mvelo.getExtensionColor(fileExt);
+
+    var extensionButton = $('<span/>', {
+      "style": "text-transform: uppercase; background-color: "+extColor,
+      "class": 'label'
+    }).append(fileExt);
+
+    var contentLength = Object.keys(content).length;
+    var uint8Array = new Uint8Array(contentLength);
+    for (var i = 0; i < contentLength; i++) {
+      uint8Array[i] = content[i];
+    }
+    var blob = new Blob([uint8Array], { type: mimeType });
+
+    /*var dataURL = window.URL.createObjectURL(blob);
+    var fileUI = $('<a/>', {
+        "href": dataURL,
+        "class": 'label label-default',
+        "download": filename,
+        "style": 'background-color: #ddd'
+      })
+        .append(extensionButton)
+        .append(" "+fileNameNoExt+" ");
+
+    $attachments = $('#decryptmail').contents().find('#attachments');
+    $attachments.append(fileUI);
+    $attachments.append("&nbsp;"); */
+
+    /*attachments[filename] = blob;
+    var fileUI = $('<a/>', {
+      //"dataurl": blob,
+      "class": 'label label-default',
+      "download": filename,
+      //"href": "#",
+      //target: "_blank",
+      "style": 'background-color: #ddd'
+    })
+      .append(extensionButton)
+      .append(" "+fileNameNoExt+" ")
+      .click(function() {
+        var fname = $(this).attr("download");
+        console.log("Click on "+fname);
+        saveAs(attachments[fname],fname);
+      });
+    $attachments = $('#decryptmail').contents().find('#attachments');
+    $attachments.append(fileUI);
+    $attachments.append("&nbsp;");*/
+
+    var reader = new FileReader();
+    reader.onload = function(){
+      var fileUI = $('<a/>', {
+        "href": reader.result,
+        "class": 'label label-default',
+        "download": filename,
+        "style": 'background-color: #ddd'
+      })
+        .append(extensionButton)
+        .append(" "+fileNameNoExt+" ");
+
+      $attachments = $('#decryptmail').contents().find('#attachments');
+      $attachments.append(fileUI);
+      $attachments.append("&nbsp;");
+    };
+    reader.readAsDataURL(blob);
+
+  }
+
   function messageListener(msg) {
     //console.log('decrypt dialog messageListener: ', JSON.stringify(msg));
     switch (msg.event) {
@@ -153,6 +240,11 @@
         var message = msg.message.replace(/\n/g, '<br>');
         message = $.parseHTML(message);
         $('#decryptmail').contents().find('#content').append(message);
+        break;
+      case 'add-decrypted-attachment':
+        //console.log('popup adding decrypted attachment: ', JSON.stringify(msg.message));
+        showMessageArea();
+        addAttachment(msg.message.filename, msg.message.content, msg.message.mimeType);
         break;
       case 'error-message':
         showErrorMsg(msg.error);

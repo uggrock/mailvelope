@@ -24,10 +24,6 @@ define(function (require, exports, module) {
   var pwdCache = require('./pwdCache');
   var mailreader = require('mailreader-parser');
 
-/*  const {Cc, Ci, Cu} = require("chrome");
-  const {Blob, window} = Cu.import("resource://gre/modules/Services.jsm", {});
-  const URL = Cu.importGlobalProperties(['URL']);*/
-
   // ports to main content scripts
   var mainCsPorts = {};
   // ports to decrypt frames
@@ -602,17 +598,8 @@ define(function (require, exports, module) {
                   msgText = mvelo.encodeHTML(text.length ? text[0].content : rawText);
                   port.postMessage({event: 'decrypted-message', message: msgText});
                 } else if(part.content && part.type === "attachment") { // Handling attachments
-                  console.log("Mail attachment----: "+part.filename+" - "+part.mimeType+"\n"+part.content);
-                  var blob = new Blob([part.content], { type: part.mimeType });
-                  //part.content = URL.createObjectURL(blob);
-                  //port.postMessage({event: 'add-decrypted-attachment', message: part});
-                  var reader = new FileReader();
-                  reader.onload = function(event){
-                    console.log(' of ' + JSON.stringify(reader.result));
-                    part.content = reader.result;
-                    port.postMessage({event: 'add-decrypted-attachment', message: part});
-                  };
-                  reader.readAsDataURL(blob);
+                  //console.log("Mail attachment----: "+part.filename+" - "+part.mimeType+"\n"+part.content);
+                  port.postMessage({event: 'add-decrypted-attachment', message: part});
                 }
               });
             }

@@ -99,6 +99,61 @@ mvelo.encodeHTML = function(text) {
     .replace(/\//g, "&#x2F;");
 };
 
+mvelo.extensionColors = [];
+mvelo.extensionColors.txt  = "#427bba"; // Text
+mvelo.extensionColors.doc  = "#427bba";
+mvelo.extensionColors.docx = "#427bba";
+mvelo.extensionColors.rtf  = "#427bba";
+mvelo.extensionColors.pdf  = "#ad1e24";
+mvelo.extensionColors.html = "#ad1e24";
+mvelo.extensionColors.htm  = "#ad1e24";
+mvelo.extensionColors.mov  = "#bc4fa9"; // Video
+mvelo.extensionColors.avi  = "#bc4fa9";
+mvelo.extensionColors.wmv  = "#bc4fa9";
+mvelo.extensionColors.mpeg = "#bc4fa9";
+mvelo.extensionColors.flv  = "#bc4fa9";
+mvelo.extensionColors.divx = "#bc4fa9";
+mvelo.extensionColors.xvid = "#bc4fa9";
+mvelo.extensionColors.mp3  = "#563b8c"; // Music
+mvelo.extensionColors.wav  = "#563b8c";
+mvelo.extensionColors.zip  = "#e7ab30"; // Sonstige
+mvelo.extensionColors.rar  = "#e7ab30";
+mvelo.extensionColors.xml  = "#d6732c";
+mvelo.extensionColors.ppt  = "#d6732c";
+mvelo.extensionColors.pptx = "#d6732c";
+mvelo.extensionColors.xls  = "#6ea64e";
+mvelo.extensionColors.xlsx = "#6ea64e";
+mvelo.extensionColors.exe  = "#4b4a4a";
+mvelo.extensionColors.unknown = "#8a8a8a"; // Unbekannt
+
+mvelo.getExtensionColor = function(fileExt) {
+  var color = mvelo.extensionColors[fileExt];
+  if (color === undefined) {
+    color = mvelo.extensionColors.unknown;
+  }
+  return color;
+};
+
+mvelo.extractFileNameWithoutExt = function(fileName) {
+  var indexOfDot = fileName.lastIndexOf(".");
+  if(indexOfDot > 0 ) { // case: regular
+    return fileName.substring(0, indexOfDot);
+  } else if(indexOfDot === 0) { // case ".txt"
+    return "";
+  } else {
+    return fileName;
+  }
+};
+
+mvelo.extractFileExtension = function(fileName) {
+  var lastindexDot = fileName.lastIndexOf(".");
+  if (lastindexDot < 0) { // no extension
+    return "";
+  } else {
+    return fileName.substring(lastindexDot + 1, fileName.length).toLowerCase().trim();
+  }
+};
+
 if (typeof exports !== 'undefined') {
   exports.mvelo = mvelo;
 }
