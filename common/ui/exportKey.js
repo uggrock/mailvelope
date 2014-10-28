@@ -126,9 +126,8 @@
     var url = window.URL.createObjectURL(blob);
     $('#exportDownload a').attr('download', $('#exportDownload input').val())
                           .attr('href', url)
-                          .removeClass('hide');
-    $('#exportDownload a').get(0).click();
-    window.URL.revokeObjectURL(url);
+                          //.removeClass('hide');
+                          .get(0).click();
   }
 
   function exportToClipboard() {
