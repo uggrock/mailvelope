@@ -84,7 +84,7 @@
   function addSandbox() {
     var sandbox = $('<iframe/>', {
       id: 'decryptmail',
-      //sandbox: 'allow-same-origin',
+      sandbox: 'allow-same-origin',
       frameBorder: 0
     });
     var content = $('<div/>', {
@@ -159,8 +159,6 @@
     watermark.css('font-size', Math.floor(Math.min(watermark.width() / 3, watermark.height())));
   }
 
-  var attachments = [];
-
   function addAttachment(filename, content, mimeType) {
     var fileNameNoExt = mvelo.extractFileNameWithoutExt(filename);
     var fileExt = mvelo.extractFileExtension(filename);
@@ -178,9 +176,9 @@
     }
     var blob = new Blob([uint8Array], { type: mimeType });
 
-    /*var dataURL = window.URL.createObjectURL(blob);
+    var objectURL = window.URL.createObjectURL(blob);
     var fileUI = $('<a/>', {
-        "href": dataURL,
+        "href": objectURL,
         "class": 'label label-default',
         "download": filename,
         "style": 'background-color: #ddd'
@@ -190,7 +188,7 @@
 
     $attachments = $('#decryptmail').contents().find('#attachments');
     $attachments.append(fileUI);
-    $attachments.append("&nbsp;"); */
+    $attachments.append("&nbsp;");
 
     /*attachments[filename] = blob;
     var fileUI = $('<a/>', {
@@ -212,7 +210,7 @@
     $attachments.append(fileUI);
     $attachments.append("&nbsp;");*/
 
-    var reader = new FileReader();
+    /*var reader = new FileReader();
     reader.onload = function(){
       var fileUI = $('<a/>', {
         "href": reader.result,
@@ -227,7 +225,7 @@
       $attachments.append(fileUI);
       $attachments.append("&nbsp;");
     };
-    reader.readAsDataURL(blob);
+    reader.readAsDataURL(blob);*/
 
   }
 
