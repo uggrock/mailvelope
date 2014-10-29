@@ -66,7 +66,7 @@
 
   function addSandbox() {
     sandbox = $('<iframe/>', {
-      //sandbox: 'allow-same-origin',
+      sandbox: 'allow-same-origin',
       css: {
         position: 'absolute',
         top: 24,
@@ -166,22 +166,26 @@
       uint8Array[i] = content[i];
     }
     var blob = new Blob([uint8Array], { type: mimeType }); // 'application/octet-binary'
-    var reader = new FileReader();
-    reader.onload = function(){
-      var fileUI = $('<a/>', {
-        "href": reader.result,
-        "class": 'label label-default',
-        "download": filename,
-        "style": 'background-color: #ddd'
-      })
-        .append(extensionButton)
-        .append(" "+fileNameNoExt+" ");
+    var objectURL = window.URL.createObjectURL(blob);
+    var fileUI = $('<a/>', {
+      "href": objectURL,
+      "class": 'label label-default',
+      "download": filename,
+      "style": 'background-color: #ddd'
+    })
+      .append(extensionButton)
+      .append(" "+fileNameNoExt+" ");
 
-      $attachments = sandbox.contents().find('#attachments');
-      $attachments.append(fileUI);
-      $attachments.append("&nbsp;");
-    };
-    reader.readAsDataURL(blob);
+    $attachments = sandbox.contents().find('#attachments');
+    $attachments.append(fileUI);
+    $attachments.append("&nbsp;");
+
+    /*      .click(function() {
+     var link = document.createElement("a");
+     link.download = $(this).attr("download");
+     link.href = $(this).attr("href");
+     link.click();
+     }) */
   }
 
   function messageListener(msg) {
