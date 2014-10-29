@@ -100,6 +100,14 @@ mvelo.encodeHTML = function(text) {
 };
 
 mvelo.extensionColors = [];
+mvelo.extensionColors.jpg  = "#4ba5cb"; // Images
+mvelo.extensionColors.png  = "#4ba5cb";
+mvelo.extensionColors.bmp  = "#4ba5cb";
+mvelo.extensionColors.tif  = "#4ba5cb";
+mvelo.extensionColors.tiff = "#4ba5cb";
+mvelo.extensionColors.jpg  = "#4ba5cb";
+mvelo.extensionColors.jpeg = "#4ba5cb";
+mvelo.extensionColors.psd  = "#4ba5cb";
 mvelo.extensionColors.txt  = "#427bba"; // Text
 mvelo.extensionColors.doc  = "#427bba";
 mvelo.extensionColors.docx = "#427bba";
