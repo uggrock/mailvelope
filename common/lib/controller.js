@@ -580,23 +580,32 @@ define(function (require, exports, module) {
           // MIME
           mailreader.parse([{raw: rawText}], function(parsed) {
             if(parsed && parsed.length > 0) {
+              var hasHTMLPart = false;
+              /*if(parsed[0].content[1] !== undefined && parsed[0].content[1].type === "html") {
+                hasHTMLPart = true;
+              }*/
+              parsed[0].content.forEach(function(part){
+                if(part.type === "html") {
+                  hasHTMLPart = true;
+                }
+              });
               parsed[0].content.forEach(function(part, index){
-                //console.log("Mail message----: "+index+"-"+part.type+"\n"+part.content);
-                if(part.type === "text" || part.type === "html") {
-                  var html = parsed[0].content.filter(function(entry) {
-                    return entry.type === 'html';
-                  });
-                  if (html.length) {
-                    mvelo.util.parseHTML(html[0].content, function(sanitized) {
-                      port.postMessage({event: 'decrypted-message', message: sanitized});
-                    });
-                    return;
-                  }
-                  var text = parsed[0].content.filter(function(entry) {
+                console.log("Mail message----: "+index+"-"+part.type+"\n"+part.content);
+                if(part.type === "text" && !hasHTMLPart) {
+                  var text = parsed[0].content.filter(function (entry) {
                     return entry.type === 'text';
                   });
                   msgText = mvelo.encodeHTML(text.length ? text[0].content : rawText);
                   port.postMessage({event: 'decrypted-message', message: msgText});
+                } else if(part.type === "html") {
+                  var html = parsed[0].content.filter(function (entry) {
+                    return entry.type === 'html';
+                  });
+                  if (html.length) {
+                    mvelo.util.parseHTML(html[0].content, function (sanitized) {
+                      port.postMessage({event: 'decrypted-message', message: sanitized});
+                    });
+                  }
                 } else if(part.content && part.type === "attachment") { // Handling attachments
                   //console.log("Mail attachment----: "+part.filename+" - "+part.mimeType+"\n"+part.content);
                   port.postMessage({event: 'add-decrypted-attachment', message: part});
