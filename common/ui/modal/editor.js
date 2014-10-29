@@ -37,34 +37,6 @@
 
   var maxFileUploadSize = 50000000;
 
-  var extensionColors = [];
-  extensionColors.txt  = "#427bba"; // Text
-  extensionColors.doc  = "#427bba";
-  extensionColors.docx = "#427bba";
-  extensionColors.rtf  = "#427bba";
-  extensionColors.pdf  = "#ad1e24";
-  extensionColors.html = "#ad1e24";
-  extensionColors.htm  = "#ad1e24";
-  extensionColors.mov  = "#bc4fa9"; // Video
-  extensionColors.avi  = "#bc4fa9";
-  extensionColors.wmv  = "#bc4fa9";
-  extensionColors.mpeg = "#bc4fa9";
-  extensionColors.flv  = "#bc4fa9";
-  extensionColors.divx = "#bc4fa9";
-  extensionColors.xvid = "#bc4fa9";
-  extensionColors.mp3  = "#563b8c"; // Music
-  extensionColors.wav  = "#563b8c";
-  extensionColors.zip  = "#e7ab30"; // Sonstige
-  extensionColors.rar  = "#e7ab30";
-  extensionColors.xml  = "#d6732c";
-  extensionColors.ppt  = "#d6732c";
-  extensionColors.pptx = "#d6732c";
-  extensionColors.xls  = "#6ea64e";
-  extensionColors.xlsx = "#6ea64e";
-  extensionColors.exe  = "#4b4a4a";
-  extensionColors.unknown = "#8a8a8a"; // Unbekannt
-  var currentUploadFileName;
-
   function init() {
     var qs = jQuery.parseQuerystring();
     parentID = qs.parent;
@@ -120,20 +92,24 @@
 
   var attachments = [];
 
-  function addAttachment(filename, id, content) {
-    var fileNameNoExt = extractFileNameWithoutExt(filename);
-    var fileExt = extractFileExtension(filename);
-    var extColor = getExtensionColor(fileExt);
-    // check if id exists
-    attachments.push({"filename":filename, "id":""+id, "content":content});
+  function addAttachment(file) {
+    onChange();
+    var fileNameNoExt = mvelo.extractFileNameWithoutExt(file.name);
+    var fileExt = mvelo.extractFileExtension(file.name);
+    var extColor = mvelo.getExtensionColor(fileExt);
+    var id = Date.now();
+    // TODO check if id exists
+    attachments[id] = {"content":file};
     $uploadPanel = $("#uploadPanel");
-    // <span class="label label-default">FileName1.txt  <span class="glyphicon glyphicon-remove"></span></span>
+
+    var objectURL = window.URL.createObjectURL(file);
 
     var removeUploadButton = $('<span/>', {
       "data-id": id,
       "style": "background-color: #b5b45b",
       "class": 'glyphicon glyphicon-remove'
-    }).on("click", function() {
+    }).on("click", function(e) {
+      e.preventDefault();
       removeAttachment($(this).attr("data-id"));
       $(this).parent().remove();
     });
@@ -144,7 +120,9 @@
       "class": 'label'
     }).append(fileExt);
 
-    var fileUI = $('<span/>', {
+    var fileUI = $('<a/>', {
+      "download": file.name,
+      "href": objectURL,
       "class": 'label label-default',
       "style": 'background-color: #ddd'
     })
@@ -154,31 +132,14 @@
 
     $uploadPanel.append(fileUI);
     $uploadPanel.append("&nbsp;");
-    currentUploadFileName = undefined;
   }
 
   function removeAttachment(id) {
-    attachments.forEach(function(element, index) {
-      if(element.id === id) {
-        attachments.splice( index, 1 );
-      }
-    });
-    getAttachmentsContent();
+    delete attachments[id];
   }
 
-  function disableAttachmentsUI() {
-
-  }
-
-  function downloadAttachment(id) {
-
-  }
-
-  function getAttachmentsContent() {
-    var result = "";
-    attachments.forEach(function(element, index) {
-      result += element.filename+"-----------------------\n"+element.content;
-    });
+  function getAttachmentsContent(id) {
+    var result = attachments[id];
     console.log("Attachment content: "+result);
     return result;
   }
@@ -192,16 +153,7 @@
       alert("Attachment size exceeds "+maxFileUploadSize+" bytes. File upload will be aborted.");
       return;
     }
-    currentUploadFileName = file.name;
-    var reader = new FileReader();
-    reader.onload = onFileReadComplete;
-    reader.readAsDataURL(file);
-  }
-
-  function onFileReadComplete(event) {
-    //console.log(JSON.stringify(event.currentTarget.result));
-    //editor.val(editor.val()+"\n\n"+event.currentTarget.result);
-    addAttachment(currentUploadFileName,event.timeStamp,event.currentTarget.result);
+    addAttachment(file);
   }
 
   function onCancel() {
@@ -390,34 +342,6 @@
       default:
         console.log('unknown event');
     }
-  }
-
-  function extractFileNameWithoutExt(fileName) {
-    var indexOfDot = fileName.lastIndexOf(".");
-    if(indexOfDot > 0 ) { // case: regular
-      return fileName.substring(0, indexOfDot);
-    } else if(indexOfDot === 0) { // case ".txt"
-      return "";
-    } else {
-      return fileName;
-    }
-  }
-
-  function extractFileExtension(fileName) {
-    var lastindexDot = fileName.lastIndexOf(".");
-    if (lastindexDot < 0) { // no extension
-      return "";
-    } else {
-      return fileName.substring(lastindexDot + 1, fileName.length).toLowerCase().trim();
-    }
-  }
-
-  function getExtensionColor(fileExt) {
-    var color = extensionColors[fileExt];
-    if (color === undefined) {
-      color = extensionColors.unknown;
-    }
-    return color;
   }
 
   $(document).ready(init);
