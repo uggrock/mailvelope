@@ -151,9 +151,9 @@
   }
 
   function addAttachment(filename, content, mimeType) {
-    var fileNameNoExt = mvelo.extractFileNameWithoutExt(filename);
-    var fileExt = mvelo.extractFileExtension(filename);
-    var extColor = mvelo.getExtensionColor(fileExt);
+    var fileNameNoExt = mvelo.util.extractFileNameWithoutExt(filename);
+    var fileExt = mvelo.util.extractFileExtension(filename);
+    var extColor = mvelo.util.getExtensionColor(fileExt);
 
     var extensionButton = $('<span/>', {
       "style": "text-transform: uppercase; background-color: "+extColor,

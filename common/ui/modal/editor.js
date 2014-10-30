@@ -94,9 +94,9 @@
 
   function addAttachment(file) {
     onChange();
-    var fileNameNoExt = mvelo.extractFileNameWithoutExt(file.name);
-    var fileExt = mvelo.extractFileExtension(file.name);
-    var extColor = mvelo.getExtensionColor(fileExt);
+    var fileNameNoExt = mvelo.util.extractFileNameWithoutExt(file.name);
+    var fileExt = mvelo.util.extractFileExtension(file.name);
+    var extColor = mvelo.util.getExtensionColor(fileExt);
     var id = Date.now();
     // TODO check if id exists
     attachments[id] = {"content":file};
