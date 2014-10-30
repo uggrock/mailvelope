@@ -35,6 +35,7 @@
     port = mvelo.extension.connect({name: name});
     port.onMessage.addListener(messageListener);
     port.postMessage({event: 'decrypt-popup-init', sender: name});
+    addAttachmentPanel();
     addSandbox();
     addErrorView();
     $(window).on('unload', onClose);
@@ -64,12 +65,29 @@
     sel.removeAllRanges();
   }
 
+  function addAttachmentPanel() {
+    var attachments = $('<div/>', {
+      id: 'attachments',
+      css: {
+        position: 'absolute',
+        top: "20px",
+        left: 0,
+        right: 0,
+        bottom: '0',
+        margin: '3px',
+        padding: '3px',
+        overflow: 'auto'
+      }
+    });
+    $('.modal-body').append(attachments);
+  }
+
   function addSandbox() {
     sandbox = $('<iframe/>', {
       sandbox: 'allow-same-origin',
       css: {
         position: 'absolute',
-        top: 24,
+        top: "50px",
         left: 0,
         right: 0,
         bottom: 0
@@ -89,19 +107,6 @@
         overflow: 'auto'
       }
     });
-    var attachments = $('<div/>', {
-      id: 'attachments',
-      css: {
-        position: 'absolute',
-        top: '250px',
-        left: 0,
-        right: 0,
-        bottom: '0',
-        margin: '3px',
-        padding: '3px',
-        overflow: 'auto'
-      }
-    });
     var style = $('<link/>', {
       rel: 'stylesheet',
       href: '../../dep/bootstrap/css/bootstrap.css'
@@ -111,7 +116,6 @@
       sandbox.contents().find('head').append(style)
                                      .append(style2);
       sandbox.contents().find('body').append(content);
-      sandbox.contents().find('body').append(attachments);
     });
     $('.modal-body').append(sandbox);
   }
@@ -176,7 +180,7 @@
       .append(extensionButton)
       .append(" "+fileNameNoExt+" ");
 
-    $attachments = sandbox.contents().find('#attachments');
+    $attachments = $('#attachments');
     $attachments.append(fileUI);
     $attachments.append("&nbsp;");
 
