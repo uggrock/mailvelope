@@ -40,6 +40,7 @@
     }
     setStyles();
     addWrapper();
+    addAttachmentPanel();
     addSandbox();
     mvelo.extension.sendMessage({event: "get-security-token"}, function(token) {
       $('#watermark').html(mvelo.encodeHTML(token.code));
@@ -81,25 +82,27 @@
     wrapper.appendTo('body');
   }
 
-  function addSandbox() {
-    var sandbox = $('<iframe/>', {
-      id: 'decryptmail',
-      sandbox: 'allow-same-origin',
-      frameBorder: 0
-    });
-    var content = $('<div/>', {
-      id: 'content',
+  function addAttachmentPanel() {
+    var attachments = $('<div/>', {
+      id: 'attachments',
       css: {
         position: 'absolute',
         top: '0',
         left: 0,
         right: 0,
-        bottom: 0,
+        bottom: '0',
         padding: '3px',
-        'margin-top': '40px',
-        'background-color': 'rgba(0,0,0,0)',
+        'background-color': 'rgba(0,0,0,0)', // #D7E3FF
         overflow: 'auto'
       }
+    });
+    $('#wrapper').append(attachments);
+  }
+
+  function addAttachmentPanel2() {
+    var attachmentPanel = $('<iframe/>', {
+      id: 'attachmentarea',
+      frameBorder: 0
     });
     var attachments = $('<div/>', {
       id: 'attachments',
@@ -118,12 +121,42 @@
       rel: 'stylesheet',
       href: commonPath + '/dep/bootstrap/css/bootstrap.css'
     });
+    attachmentPanel.on('load', function() {
+      $(this).contents().find('head').append(style);
+      $(this).contents().find('body').append(attachments);
+    });
+    $('#wrapper').append(attachmentPanel);
+  }
+
+  function addSandbox() {
+    var sandbox = $('<iframe/>', {
+      id: 'decryptmail',
+      sandbox: 'allow-same-origin',
+      frameBorder: 0
+    });
+    var content = $('<div/>', {
+      id: 'content',
+      css: {
+        position: 'absolute',
+        top: '0',
+        left: 0,
+        right: 0,
+        bottom: 0,
+        padding: '3px',
+        //'margin-top': '40px',
+        'background-color': 'rgba(0,0,0,0)',
+        overflow: 'auto'
+      }
+    });
+    var style = $('<link/>', {
+      rel: 'stylesheet',
+      href: commonPath + '/dep/bootstrap/css/bootstrap.css'
+    });
     var style2 = style.clone().attr('href', commonPath + '/dep/wysihtml5/css/wysihtml5.css');
     sandbox.on('load', function() {
       $(this).contents().find('head').append(style)
                                      .append(style2);
       $(this).contents().find('body').css('background-color', 'rgba(0,0,0,0)');
-      $(this).contents().find('body').append(attachments);
       $(this).contents().find('body').append(content);
     });
     $('#wrapper').append(sandbox);
@@ -186,47 +219,10 @@
         .append(extensionButton)
         .append(" "+fileNameNoExt+" ");
 
-    $attachments = $('#decryptmail').contents().find('#attachments');
+    //$attachments = $('#attachmentarea').contents().find('#attachments');
+    $attachments = $('#attachments');
     $attachments.append(fileUI);
     $attachments.append("&nbsp;");
-
-    /*attachments[filename] = blob;
-    var fileUI = $('<a/>', {
-      //"dataurl": blob,
-      "class": 'label label-default',
-      "download": filename,
-      //"href": "#",
-      //target: "_blank",
-      "style": 'background-color: #ddd'
-    })
-      .append(extensionButton)
-      .append(" "+fileNameNoExt+" ")
-      .click(function() {
-        var fname = $(this).attr("download");
-        console.log("Click on "+fname);
-        saveAs(attachments[fname],fname);
-      });
-    $attachments = $('#decryptmail').contents().find('#attachments');
-    $attachments.append(fileUI);
-    $attachments.append("&nbsp;");*/
-
-    /*var reader = new FileReader();
-    reader.onload = function(){
-      var fileUI = $('<a/>', {
-        "href": reader.result,
-        "class": 'label label-default',
-        "download": filename,
-        "style": 'background-color: #ddd'
-      })
-        .append(extensionButton)
-        .append(" "+fileNameNoExt+" ");
-
-      $attachments = $('#decryptmail').contents().find('#attachments');
-      $attachments.append(fileUI);
-      $attachments.append("&nbsp;");
-    };
-    reader.readAsDataURL(blob);*/
-
   }
 
   function messageListener(msg) {
